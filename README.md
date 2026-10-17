@@ -39,15 +39,18 @@ Turrets on any station the game treats as friendly to you: your own bases, their
 turrets, and stations of factions you are friendly with. Turrets that are switched off or have no
 power are left out, because they don't fire. Turrets on ships, including your fleet, are not shown.
 
-Weapons are sorted into one kind each. A weapon that fits several takes the most specific:
+Weapons are sorted into one kind each. A weapon that fits several takes the most specific.
+These kinds are the mod's own grouping by how a weapon fires, not the game's damage types (Normal,
+Shields only and so on), so a weapon's name can mislead. A laser that fires bolts, such as the Fast
+Piercing Laser, counts as Kinetic, and only lasers that fire a continuous beam count as Beam.
 
 | Kind | Weapons |
 |---|---|
 | Repair beam | weapons that repair instead of damaging |
 | Missile | missiles, energy orbs and torpedoes |
 | Point defence | weapons that can shoot down missiles and drones |
-| Beam | other beam weapons |
-| Kinetic | everything else (cannons, railguns, plasma, pulse...) |
+| Beam | other weapons that fire a continuous beam |
+| Kinetic | everything else, which fires shots or bolts (cannons, railguns, plasma, pulse, bolt-firing lasers...) |
 
 Torpedoes are counted as missiles, but the game only fires them inside the turret's arc, so they
 are drawn as an arc rather than a circle.
