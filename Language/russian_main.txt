@@ -1,0 +1,21 @@
+#=======================================================|
+#   Friendly Turret Coverage - Language File - Russian  |
+#=======================================================|
+#                      Instructions                     |
+#                                                       |
+# - Same format as the game's Language/*_main.txt files |
+# - Don't erase the numbers in front or the bar         |
+#   character at the end                                |
+# - Save as UTF-8, named like the game's own file       |
+#   (german_main.txt, chinese_main.txt, ...)            |
+# - Missing entries fall back to English                |
+#=======================================================|
+[0] On-screen toggles                                   |
+#=======================================================|
+000 Зона обстрела турелей|
+001 Луч|
+002 Кинетическое|
+003 Ракета|
+004 Противоракетная оборона|
+005 Ремонтный луч|
+006 Цвет по типу|

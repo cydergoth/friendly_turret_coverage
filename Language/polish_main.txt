@@ -1,0 +1,21 @@
+#=======================================================|
+#   Friendly Turret Coverage - Language File - Polish   |
+#=======================================================|
+#                      Instructions                     |
+#                                                       |
+# - Same format as the game's Language/*_main.txt files |
+# - Don't erase the numbers in front or the bar         |
+#   character at the end                                |
+# - Save as UTF-8, named like the game's own file       |
+#   (german_main.txt, chinese_main.txt, ...)            |
+# - Missing entries fall back to English                |
+#=======================================================|
+[0] On-screen toggles                                   |
+#=======================================================|
+000 Zasięg wieżyczek|
+001 Wiązka|
+002 Kinetyczna|
+003 Rakieta|
+004 Obrona punktowa|
+005 Wiązka naprawcza|
+006 Kolor według typu|

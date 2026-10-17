@@ -1,0 +1,21 @@
+#=======================================================|
+#   Friendly Turret Coverage - Language File - Italian  |
+#=======================================================|
+#                      Instructions                     |
+#                                                       |
+# - Same format as the game's Language/*_main.txt files |
+# - Don't erase the numbers in front or the bar         |
+#   character at the end                                |
+# - Save as UTF-8, named like the game's own file       |
+#   (german_main.txt, chinese_main.txt, ...)            |
+# - Missing entries fall back to English                |
+#=======================================================|
+[0] On-screen toggles                                   |
+#=======================================================|
+000 Copertura torrette|
+001 Raggio|
+002 Cinetico|
+003 Missile|
+004 Difesa ravvicinata|
+005 Raggio di riparazione|
+006 Colore per tipo|

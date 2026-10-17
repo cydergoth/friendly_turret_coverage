@@ -1,0 +1,21 @@
+#=======================================================|
+#  Friendly Turret Coverage - Language File - Japanese  |
+#=======================================================|
+#                      Instructions                     |
+#                                                       |
+# - Same format as the game's Language/*_main.txt files |
+# - Don't erase the numbers in front or the bar         |
+#   character at the end                                |
+# - Save as UTF-8, named like the game's own file       |
+#   (german_main.txt, chinese_main.txt, ...)            |
+# - Missing entries fall back to English                |
+#=======================================================|
+[0] On-screen toggles                                   |
+#=======================================================|
+000 タレットの射界|
+001 ビーム|
+002 実弾|
+003 ミサイル|
+004 迎撃|
+005 修理ビーム|
+006 種類別に色分け|

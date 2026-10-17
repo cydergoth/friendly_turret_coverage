@@ -1,0 +1,21 @@
+#=======================================================|
+# Friendly Turret Coverage - Language File - Vietnamese |
+#=======================================================|
+#                      Instructions                     |
+#                                                       |
+# - Same format as the game's Language/*_main.txt files |
+# - Don't erase the numbers in front or the bar         |
+#   character at the end                                |
+# - Save as UTF-8, named like the game's own file       |
+#   (german_main.txt, chinese_main.txt, ...)            |
+# - Missing entries fall back to English                |
+#=======================================================|
+[0] On-screen toggles                                   |
+#=======================================================|
+000 Vùng bắn của tháp pháo|
+001 Tia|
+002 Động năng|
+003 Tên lửa|
+004 Phòng thủ điểm|
+005 Tia sửa chữa|
+006 Màu theo loại|

@@ -1,0 +1,21 @@
+#=======================================================|
+#   Friendly Turret Coverage - Language File - Chinese  |
+#=======================================================|
+#                      Instructions                     |
+#                                                       |
+# - Same format as the game's Language/*_main.txt files |
+# - Don't erase the numbers in front or the bar         |
+#   character at the end                                |
+# - Save as UTF-8, named like the game's own file       |
+#   (german_main.txt, chinese_main.txt, ...)            |
+# - Missing entries fall back to English                |
+#=======================================================|
+[0] On-screen toggles                                   |
+#=======================================================|
+000 炮塔覆盖范围|
+001 光束|
+002 动能|
+003 导弹|
+004 点防御|
+005 修复光束|
+006 按类型着色|
