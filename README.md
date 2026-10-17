@@ -97,7 +97,7 @@ Star Valor BepInEx mods, skip to step 2.
 `BepInEx/LogOutput.log` should contain:
 
 ```
-[Info   :Friendly Turret Coverage] Friendly Turret Coverage 1.0.0 loaded
+[Info   :Friendly Turret Coverage] Friendly Turret Coverage 1.1.0 loaded
 ```
 
 If the log file doesn't exist, BepInEx isn't running. Check that the files are next to

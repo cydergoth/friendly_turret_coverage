@@ -13,7 +13,7 @@ namespace FriendlyTurretCoverage
     {
         public const string Guid = "starvalor.friendlyturretcoverage";
         public const string Name = "Friendly Turret Coverage";
-        public const string Version = "1.0.0";
+        public const string Version = "1.1.0";
 
         internal static ManualLogSource Log;
         internal static ConfigEntry<bool> ShowCoverage;
