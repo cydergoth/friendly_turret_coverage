@@ -21,11 +21,22 @@ namespace FriendlyTurretCoverage
         private readonly RaycastHit[] hits = new RaycastHit[32];
         private readonly float[] kindRange = new float[DamageKinds.Count];
         private readonly bool[] kindUnrestricted = new bool[DamageKinds.Count];
+        private readonly List<Weapon>[] kindAmmoWeapons = new List<Weapon>[DamageKinds.Count];
+        // Ammunition used per second by all the powered turrets drawing on each stock, at full fire.
+        private readonly Dictionary<AmmoBuffer_ItemStock, float> drain = new Dictionary<AmmoBuffer_ItemStock, float>();
         private SpaceShip player;
         private int serial;
 
         /// <summary>Every field of fire found at the last <see cref="Scan"/>.</summary>
         public readonly List<FieldOfFire> Fields = new List<FieldOfFire>();
+
+        public TurretScanner()
+        {
+            for (int k = 0; k < DamageKinds.Count; k++)
+            {
+                kindAmmoWeapons[k] = new List<Weapon>();
+            }
+        }
 
         /// <summary>Finds the friendly station turrets and the weapons on them.</summary>
         public void Scan()
@@ -41,6 +52,7 @@ namespace FriendlyTurretCoverage
             }
 
             serial++;
+            drain.Clear();
             foreach (WeaponTurret turret in Object.FindObjectsOfType<WeaponTurret>())
             {
                 AddTurret(turret);
@@ -53,6 +65,10 @@ namespace FriendlyTurretCoverage
                 {
                     Forget(field);
                     Fields.RemoveAt(i);
+                }
+                else
+                {
+                    field.Ammo = AmmoOf(field.AmmoWeapons);
                 }
             }
         }
@@ -79,6 +95,7 @@ namespace FriendlyTurretCoverage
             {
                 kindRange[k] = 0f;
                 kindUnrestricted[k] = false;
+                kindAmmoWeapons[k].Clear();
             }
             foreach (Weapon weapon in ss.weapons)
             {
@@ -89,6 +106,16 @@ namespace FriendlyTurretCoverage
                 int k = (int)DamageKinds.Of(weapon.wRef);
                 kindRange[k] = Mathf.Max(kindRange[k], weapon.range);
                 kindUnrestricted[k] |= DamageKinds.IsMissile(weapon.wRef);
+                if (Buffer(weapon) is AmmoBuffer_ItemStock buffer)
+                {
+                    kindAmmoWeapons[k].Add(weapon);
+                    // A turret that is switched off doesn't fire, so it uses none.
+                    if (turret.active)
+                    {
+                        drain.TryGetValue(buffer, out float rate);
+                        drain[buffer] = rate + Drain(weapon);
+                    }
+                }
             }
 
             bool fullCircle = turret.type == WeaponTurretType.Rotating || turret.degreesLimit >= 360f;
@@ -115,9 +142,67 @@ namespace FriendlyTurretCoverage
                 field.Range = kindRange[k];
                 field.Unrestricted = kindUnrestricted[k];
                 field.FullCircle = fullCircle;
+                field.AmmoWeapons.Clear();
+                field.AmmoWeapons.AddRange(kindAmmoWeapons[k]);
                 // WeaponTurret turns by Time.deltaTime * 10 * turnSpeed degrees a frame.
                 field.TurnRate = 10f * turret.turnSpeed;
             }
+        }
+
+        /// <summary>
+        /// Where the weapon takes its ammunition from: the item stock of its station, or of the
+        /// station that one is cargo linked to. Every weapon using that ammunition from that stock
+        /// shares one buffer. Null for a weapon that needs no ammunition, or isn't loaded yet and
+        /// so fires without paying.
+        /// </summary>
+        private static AmmoBuffer_ItemStock Buffer(Weapon weapon)
+        {
+            TAmmo ammo = weapon.wRef.ammo;
+            return ammo != null && ammo.itemID >= 0 ? GameAccess.Ammo(weapon) as AmmoBuffer_ItemStock : null;
+        }
+
+        /// <summary>
+        /// Ammunition the weapon uses per second firing non-stop. <c>Weapon.Fire</c> pays for each
+        /// shot, waits <c>RateOfFire</c> seconds after a lone shot or a burst, and
+        /// <c>shortCooldown</c> between the shots of a burst. Extra barrels fire for free.
+        /// </summary>
+        private static float Drain(Weapon weapon)
+        {
+            TWeapon wRef = weapon.wRef;
+            float cycle = weapon.RateOfFire + wRef.burst * wRef.shortCooldown;
+            return (wRef.burst + 1) * wRef.ammo.qnt / Mathf.Max(0.01f, cycle);
+        }
+
+        /// <summary>
+        /// The worst ammunition level of the weapons. A weapon is out when it can't pay for its next
+        /// shot, the same check <c>Weapon.PayCost</c> makes, and low when its stock would last
+        /// less than <see cref="Plugin.LowAmmoSeconds"/> with every powered turret on that stock firing.
+        /// </summary>
+        private AmmoLevel AmmoOf(List<Weapon> weapons)
+        {
+            AmmoLevel worst = AmmoLevel.Ok;
+            foreach (Weapon weapon in weapons)
+            {
+                AmmoBuffer_ItemStock buffer = Buffer(weapon);
+                if (buffer == null)
+                {
+                    continue;
+                }
+                // With no stock entry for the ammunition, the station has none at all.
+                int stock = buffer.isd != null ? buffer.isd.stock : 0;
+                if (stock < weapon.wRef.ammo.qnt)
+                {
+                    return AmmoLevel.Out;
+                }
+                // A switched-off turret is measured as if it alone fired.
+                drain.TryGetValue(buffer, out float rate);
+                rate = Mathf.Max(rate, Drain(weapon));
+                if (stock < rate * Plugin.LowAmmoSeconds.Value)
+                {
+                    worst = AmmoLevel.Low;
+                }
+            }
+            return worst;
         }
 
         private void Forget(FieldOfFire field)

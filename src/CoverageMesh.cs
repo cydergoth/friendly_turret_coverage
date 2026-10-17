@@ -23,6 +23,9 @@ namespace FriendlyTurretCoverage
         private const float TrailSeconds = 0.12f;
         private const float MaxTrailDegrees = 40f;
         private const int TrailSegments = 8;
+        // The out-of-ammunition warning: its height and its gap above the turret, in pixels.
+        private const float WarningPixels = 18f;
+        private const float WarningGapPixels = 6f;
 
         private static readonly List<Vector3> vertices = new List<Vector3>();
         private static readonly List<Color32> colors = new List<Color32>();
@@ -90,6 +93,7 @@ namespace FriendlyTurretCoverage
             return new Vector3(field.Origin.x, PlaneHeight, field.Origin.z);
         }
 
+        /// <summary>Starts a batch of sweeps or warnings, which <see cref="EndSweeps"/> puts in a mesh.</summary>
         public static void BeginSweeps()
         {
             vertices.Clear();
@@ -182,6 +186,68 @@ namespace FriendlyTurretCoverage
             mesh.SetColors(colors);
             mesh.SetTriangles(triangles, 0);
             mesh.RecalculateBounds();
+        }
+
+        /// <summary>
+        /// Adds a warning sign above a turret: a triangle with a dark border and an exclamation
+        /// mark, yellow for low ammunition and red for none, facing the camera at a fixed size on screen.
+        /// </summary>
+        public static void AddWarning(Vector3 turret, bool severe, float alpha, Camera camera)
+        {
+            float pixel = WorldPerPixel(camera, turret);
+            Vector3 right = camera.transform.right * pixel;
+            Vector3 up = camera.transform.up * pixel;
+            // Above the turret, so the turret itself stays visible for hovering.
+            Vector3 center = turret + up * (WarningPixels * 0.5f + WarningGapPixels);
+            float h = WarningPixels;
+            float w = h * 1.15f;
+
+            // Drawn in order, each part over the last.
+            AddTriangle(center, right, up, w * 1.35f, h * 1.3f, -h * 0.05f, Fade(new Color(0.08f, 0.06f, 0f), alpha));
+            AddTriangle(center, right, up, w, h, 0f, Fade(severe ? new Color(0.95f, 0.15f, 0.1f) : new Color(1f, 0.85f, 0.1f), alpha));
+            Color32 glyph = Fade(severe ? Color.white : new Color(0.12f, 0.08f, 0f), alpha);
+            AddRect(center, right, up, h * 0.13f, -h * 0.12f, h * 0.2f, glyph);
+            AddRect(center, right, up, h * 0.13f, -h * 0.36f, -h * 0.23f, glyph);
+        }
+
+        /// <summary>An upright triangle <paramref name="w"/> wide and <paramref name="h"/> high, centred on <paramref name="center"/> raised by <paramref name="lift"/>.</summary>
+        private static void AddTriangle(Vector3 center, Vector3 right, Vector3 up, float w, float h, float lift, Color32 color)
+        {
+            Vector3 middle = center + up * lift;
+            AddPolygon(color,
+                middle + up * (h * 0.5f),
+                middle - up * (h * 0.5f) + right * (w * 0.5f),
+                middle - up * (h * 0.5f) - right * (w * 0.5f));
+        }
+
+        /// <summary>A rectangle <paramref name="w"/> wide from <paramref name="bottom"/> to <paramref name="top"/> above <paramref name="center"/>.</summary>
+        private static void AddRect(Vector3 center, Vector3 right, Vector3 up, float w, float bottom, float top, Color32 color)
+        {
+            Vector3 half = right * (w * 0.5f);
+            AddPolygon(color, center + up * top - half, center + up * top + half, center + up * bottom + half, center + up * bottom - half);
+        }
+
+        /// <summary>A convex polygon, as a fan from its first corner.</summary>
+        private static void AddPolygon(Color32 color, params Vector3[] corners)
+        {
+            int start = vertices.Count;
+            foreach (Vector3 corner in corners)
+            {
+                vertices.Add(corner);
+                colors.Add(color);
+            }
+            for (int i = 1; i < corners.Length - 1; i++)
+            {
+                triangles.Add(start);
+                triangles.Add(start + i);
+                triangles.Add(start + i + 1);
+            }
+        }
+
+        private static Color32 Fade(Color color, float alpha)
+        {
+            color.a = Mathf.Clamp01(alpha);
+            return color;
         }
 
         /// <summary>The size of one screen pixel in world units, at <paramref name="point"/>.</summary>

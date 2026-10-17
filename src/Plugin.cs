@@ -25,6 +25,8 @@ namespace FriendlyTurretCoverage
         internal static ConfigEntry<bool> AdditiveBlending;
         internal static ConfigEntry<bool> ShowBlocking;
         internal static ConfigEntry<bool> IncludeUnpowered;
+        internal static ConfigEntry<bool> AmmoWarning;
+        internal static ConfigEntry<float> LowAmmoSeconds;
         internal static ConfigEntry<float> ArcStepDegrees;
         internal static ConfigEntry<float> RefreshSeconds;
         internal static ConfigEntry<float> HoverPixels;
@@ -54,6 +56,10 @@ namespace FriendlyTurretCoverage
                 "Cut each field of fire short where asteroids or stations block the turret's line of fire.");
             IncludeUnpowered = Config.Bind("General", "IncludeUnpowered", false,
                 "Also show turrets that are switched off or have no power. They don't fire.");
+            AmmoWarning = Config.Bind("General", "AmmoWarning", true,
+                "Flash a warning sign on turrets whose weapons need ammunition: yellow when it is running low, red when the station has run out and they no longer fire.");
+            LowAmmoSeconds = Config.Bind("General", "LowAmmoSeconds", 30f,
+                "A turret gets the yellow warning when its station's ammunition would last less than this many seconds with every powered turret using it firing non-stop. 0 shows only the red one.");
 
             string[] keys = { "Beam", "Kinetic", "Missile", "PointDefence", "Repair" };
             Color[] colors =

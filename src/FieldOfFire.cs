@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FriendlyTurretCoverage
@@ -9,6 +10,17 @@ namespace FriendlyTurretCoverage
     /// Angles are compass headings in degrees, the way Unity's <c>eulerAngles.y</c> measures them:
     /// 0 points along +Z and they increase clockwise seen from above.
     /// </summary>
+    /// <summary>How much ammunition a turret has left, from best to worst so the worst is the largest.</summary>
+    internal enum AmmoLevel
+    {
+        /// <summary>Enough, or the weapons don't use ammunition.</summary>
+        Ok,
+        /// <summary>Less than <see cref="Plugin.LowAmmoSeconds"/> of fire left.</summary>
+        Low,
+        /// <summary>Not enough for one shot. The game won't fire the weapon.</summary>
+        Out,
+    }
+
     internal sealed class FieldOfFire
     {
         public long Key;
@@ -22,6 +34,10 @@ namespace FriendlyTurretCoverage
         public bool FullCircle;
         /// <summary>Degrees per second the turret turns at.</summary>
         public float TurnRate;
+        /// <summary>The weapons of this kind on the turret that use ammunition.</summary>
+        public readonly List<Weapon> AmmoWeapons = new List<Weapon>();
+        /// <summary>The lowest ammunition of any of them.</summary>
+        public AmmoLevel Ammo;
 
         /// <summary>The scan that last found this turret.</summary>
         public int Seen;

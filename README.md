@@ -18,6 +18,10 @@ translucent highlight.
 - Where fields **overlap**, the highlight gets denser, so you can see where turrets back each other up.
 - **Hover the mouse over a turret** and a targeting line sweeps across its field of fire at the speed
   the turret turns: round and round for a rotating turret, back and forth for one with a limited arc.
+- A turret whose weapons need **ammunition** (cannons, vulcans, missiles, torpedoes...) gets a
+  **flashing warning sign** when the station's stock runs short: **yellow** when it would last less
+  than `LowAmmoSeconds` of continuous fire, **red** when it has run out. The game won't let a turret
+  with a red sign fire until the station's stock is refilled.
 
 While **Turret coverage** is on, more toggles appear above it:
 
@@ -132,6 +136,8 @@ settings in game. Changes show straight away.
 | General | `AdditiveBlending` | `false` | Add overlapping colours together (brighter, whiter) instead of mixing them |
 | General | `ShowBlocking` | `true` | Cut fields short where asteroids or stations block the line of fire |
 | General | `IncludeUnpowered` | `false` | Also show turrets that are switched off or unpowered |
+| General | `AmmoWarning` | `true` | Flash a warning sign on turrets that are low on (yellow) or out of (red) ammunition |
+| General | `LowAmmoSeconds` | `30` | Seconds of continuous fire left below which the yellow sign shows. `0` shows only the red one |
 | DamageTypes | `Beam`, `Kinetic`, `Missile`, `PointDefence`, `Repair` | `true` | Show that kind. The toggles change these |
 | Colors | `Beam`, `Kinetic`, `Missile`, `PointDefence`, `Repair` | blue, orange, red, purple, green | Colour of each kind (`RRGGBBAA`) |
 | Advanced | `ArcStepDegrees` | `1` | Angle between line-of-fire checks. Smaller is smoother but slower |
@@ -219,6 +225,17 @@ before a turret picks a target:
 Each field is rechecked every `RefreshSeconds`, and straight away if the turret's weapons change.
 The work is spread over frames.
 
+**Ammunition.** A weapon whose `TWeapon.ammo` names an item takes it from the station's
+`ItemStock` through its `ammoBuffer`, and `Weapon.PayCost` refuses to fire while the stock holds
+less than `ammo.qnt`. The mod makes the same check at every scan and marks the turret with the
+worst level of any shown weapon on it.
+
+All the turrets on a station, and on stations cargo linked to it, draw on one stock, so "low" is
+measured for all of them together. Firing non-stop, a weapon uses `(burst + 1) × ammo.qnt` every
+`RateOfFire + burst × shortCooldown` seconds, the cooldowns `Weapon.Fire` waits (extra barrels fire
+for free). The mod adds that up for every powered turret on the stock, and a turret is low when the
+stock would last less than `LowAmmoSeconds` at that rate.
+
 **Drawing.** Each field is a mesh of white triangles with the opacity in the vertex colours,
 on a plane just below the ships so ships and stations stay on top. It is drawn with
 `Graphics.DrawMesh` for whichever camera shows the current view (the main camera in space, the
@@ -226,6 +243,8 @@ sector map camera on the map), tinted with the kind's colour. The material uses 
 `Hidden/Internal-Colored` shader with alpha blending, so overlapping fields build up and mix. The
 targeting line is rebuilt every frame for the hovered turret. It turns at the turret's own rate,
 `10 × turnSpeed` degrees per second, the rate `WeaponTurret` turns at.
+The warning signs are rebuilt every frame too, facing the camera at a fixed size on screen, and
+drawn with depth testing off so stations don't hide them.
 
 **Toggles.** The toggles are clones of the sector map's **Show grid** toggle
 (`ScannerUIControl.GridToggle`), placed above the scanner image. Like the game's HUD panels, they

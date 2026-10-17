@@ -17,5 +17,12 @@ namespace FriendlyTurretCoverage
         /// <summary>The flight HUD. The game hides it on the sector map and while docked.</summary>
         public static readonly AccessTools.FieldRef<MinimapControl, GameObject> PlayerUI =
             AccessTools.FieldRefAccess<MinimapControl, GameObject>("playerUI");
+
+        /// <summary>
+        /// Where a weapon takes its ammunition from. On a station it is the station's item stock,
+        /// and <c>Weapon.PayCost</c> won't fire while it holds less than one shot's worth.
+        /// </summary>
+        public static readonly AccessTools.FieldRef<Weapon, AmmoBuffer> Ammo =
+            AccessTools.FieldRefAccess<Weapon, AmmoBuffer>("ammoBuffer");
     }
 }

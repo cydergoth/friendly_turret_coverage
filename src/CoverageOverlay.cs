@@ -30,17 +30,23 @@ namespace FriendlyTurretCoverage
         private const float ScanSeconds = 1f;
         // Turrets this close together (two weapon slots on one mount) sweep together on hover.
         private const float SameMountDistance = 2f;
+        // How fast the out-of-ammunition warning flashes, and its faintest opacity.
+        private const float WarningFlashesPerSecond = 1.5f;
+        private const float WarningMinAlpha = 0.2f;
 
         public static CoverageOverlay Instance;
 
         private readonly TurretScanner scanner = new TurretScanner();
         private readonly List<FieldOfFire> hovered = new List<FieldOfFire>();
+        private readonly Dictionary<WeaponTurret, AmmoLevel> warned = new Dictionary<WeaponTurret, AmmoLevel>();
         private readonly MaterialPropertyBlock[] kindTint = new MaterialPropertyBlock[DamageKinds.Count];
         private MaterialPropertyBlock singleTint;
         private MaterialPropertyBlock sweepTint;
         private MinimapControl minimap;
         private Material material;
+        private Material warningMaterial;
         private Mesh sweepMesh;
+        private Mesh warningMesh;
         private CoveragePanel panel;
         private float nextScan;
 
@@ -70,6 +76,10 @@ namespace FriendlyTurretCoverage
             sweepTint = new MaterialPropertyBlock();
             sweepMesh = new Mesh { name = "TurretCoverageSweep" };
             sweepMesh.MarkDynamic();
+            warningMesh = new Mesh { name = "TurretCoverageWarning" };
+            warningMesh.MarkDynamic();
+            // Warnings are drawn over the stations rather than hidden behind them.
+            warningMaterial = CreateMaterial(false, CompareFunction.Always);
             panel = CoveragePanel.Create(this);
             ApplyConfig();
         }
@@ -82,7 +92,9 @@ namespace FriendlyTurretCoverage
             }
             scanner.Clear();
             Destroy(sweepMesh);
+            Destroy(warningMesh);
             Destroy(material);
+            Destroy(warningMaterial);
             if (panel != null)
             {
                 Destroy(panel.gameObject);
@@ -93,7 +105,7 @@ namespace FriendlyTurretCoverage
         public void ApplyConfig()
         {
             Destroy(material);
-            material = CreateMaterial(Plugin.AdditiveBlending.Value);
+            material = CreateMaterial(Plugin.AdditiveBlending.Value, CompareFunction.LessEqual);
             for (int i = 0; i < DamageKinds.Count; i++)
             {
                 SetTint(kindTint[i], Plugin.KindColor[i].Value);
@@ -116,7 +128,7 @@ namespace FriendlyTurretCoverage
             block.SetColor("_RendererColor", Color.white);
         }
 
-        private static Material CreateMaterial(bool additive)
+        private static Material CreateMaterial(bool additive, CompareFunction depthTest)
         {
             // Hidden/Internal-Colored is Unity's built-in shader for plain coloured geometry (lines,
             // debug shapes). It is always in a player build and lets the blending be set per material.
@@ -126,7 +138,7 @@ namespace FriendlyTurretCoverage
             mat.SetInt("_DstBlend", (int)(additive ? BlendMode.One : BlendMode.OneMinusSrcAlpha));
             mat.SetInt("_Cull", (int)CullMode.Off);
             mat.SetInt("_ZWrite", 0);
-            mat.SetInt("_ZTest", (int)CompareFunction.LessEqual);
+            mat.SetInt("_ZTest", (int)depthTest);
             mat.renderQueue = (int)RenderQueue.Transparent;
             return mat;
         }
@@ -225,6 +237,41 @@ namespace FriendlyTurretCoverage
                 CoverageMesh.EndSweeps(sweepMesh);
                 Graphics.DrawMesh(sweepMesh, Matrix4x4.identity, material, layer, camera, 0, sweepTint, false, false);
             }
+
+            if (Plugin.AmmoWarning.Value)
+            {
+                DrawWarnings(camera, layer, now);
+            }
+        }
+
+        /// <summary>A flashing warning sign above each shown turret that is low on or out of ammunition.</summary>
+        private void DrawWarnings(Camera camera, int layer, float now)
+        {
+            warned.Clear();
+            float flash = 0.5f + 0.5f * Mathf.Cos(now * WarningFlashesPerSecond * 2f * Mathf.PI);
+            float alpha = Mathf.Lerp(WarningMinAlpha, 1f, flash);
+            List<FieldOfFire> fields = scanner.Fields;
+            for (int i = 0; i < fields.Count; i++)
+            {
+                FieldOfFire field = fields[i];
+                // One sign per turret, for the worst of its kinds.
+                if (field.Ammo != AmmoLevel.Ok && field.HasShape && field.Turret != null && Plugin.KindShown[(int)field.Kind].Value
+                    && (!warned.TryGetValue(field.Turret, out AmmoLevel level) || field.Ammo > level))
+                {
+                    warned[field.Turret] = field.Ammo;
+                }
+            }
+            if (warned.Count == 0)
+            {
+                return;
+            }
+            CoverageMesh.BeginSweeps();
+            foreach (KeyValuePair<WeaponTurret, AmmoLevel> turret in warned)
+            {
+                CoverageMesh.AddWarning(turret.Key.transform.position, turret.Value == AmmoLevel.Out, alpha, camera);
+            }
+            CoverageMesh.EndSweeps(warningMesh);
+            Graphics.DrawMesh(warningMesh, Matrix4x4.identity, warningMaterial, layer, camera, 0, sweepTint, false, false);
         }
 
         /// <summary>The fields of fire of the turret nearest the mouse, if it is close enough.</summary>
