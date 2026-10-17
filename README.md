@@ -79,7 +79,7 @@ Star Valor BepInEx mods, skip to step 2.
 ### 2. Install Friendly Turret Coverage
 
 1. Download **`FriendlyTurretCoverage-<version>.zip`** from the
-   [Releases page](https://github.com/cydergoth/friendly_turrent_coverage/releases/latest).
+   [Releases page](https://github.com/cydergoth/friendly_turret_coverage/releases/latest).
 2. Extract it into the game folder (the same folder as `Star Valor.exe`). This creates
    `BepInEx/plugins/FriendlyTurretCoverage/`, which holds `FriendlyTurretCoverage.dll` and a
    `Language` folder.
@@ -96,7 +96,7 @@ Star Valor BepInEx mods, skip to step 2.
 If the log file doesn't exist, BepInEx isn't running. Check that the files are next to
 `Star Valor.exe`, and on Linux check the launch option. If the line is there but the toggle is
 missing or the overlay doesn't show, please
-[open an issue](https://github.com/cydergoth/friendly_turrent_coverage/issues) and attach the log.
+[open an issue](https://github.com/cydergoth/friendly_turret_coverage/issues) and attach the log.
 
 ### Updating
 
